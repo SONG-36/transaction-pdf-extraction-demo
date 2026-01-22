@@ -1,0 +1,36 @@
+# Python / venv
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data outputs (DO NOT COMMIT)
+data/clean/
+data/interim/
+
+# Temporary / debug files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Jupyter (if added later)
+.ipynb_checkpoints/
+
+# Screenshots (optional)
+screenshots/*.png
+screenshots/*.jpg
+
+# PDFs / raw data
+# ⚠️ raw PDFs are demo assets → keep them
+# Do NOT ignore data/raw/
