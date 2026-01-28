@@ -1,145 +1,198 @@
-# Bank Statement PDF Cleanup Demo (Transaction Ledger Extraction)
+* # ✅ Demo 2 · Bank Statement Cleanup (PDF → Structured Table)
 
-This project demonstrates a **reusable data-cleaning pipeline** that converts **messy bank statement PDFs** into **analysis-ready transaction ledgers**.
+  **Bank Statement Normalization Demo**
 
-It reflects a **real-world client scenario** where financial statements are delivered as formatted PDFs that are readable by humans, but **not usable for data analysis, accounting systems, or automation**.
+  This project demonstrates a **production-style data cleaning pipeline** for converting **bank statement PDFs** into **clean, structured, analysis-ready tables**.
 
----
+  It reflects real-world client scenarios on platforms like **Upwork**, where data often comes from:
 
-## Problem
+  - bank statement PDFs
+  - scanned or generated financial reports
+  - semi-structured tables with balances and totals
 
-Bank statement PDFs typically contain:
+  ------
 
-* Visual layouts instead of structured data
-* Separate Debit / Credit columns
-* Balance rows mixed with transactions
-* Opening balance and summary rows
-* Currency symbols, commas, and formatting noise
+  ## 🔴 The Problem (Before Cleaning)
 
-Such files **cannot be directly imported** into accounting tools, spreadsheets, or analytics pipelines.
+  Raw bank statements are designed for **human reading**, not for systems or analysis.
 
----
+  Typical issues include:
 
-## Input
+  - Transactions embedded in **PDF tables**
+  - Separate **Debit / Credit columns**
+  - Running **Balance column mixed with transactions**
+  - Opening balance and summary rows mixed into data
+  - No explicit sign convention (debit vs credit)
+  - No machine-readable schema
 
-* PDF bank statements (single-page or multi-page)
-* Each PDF contains a transaction table with:
+  👉 Readable on screen, **painful to process programmatically**.
 
-  * Date
-  * Description
-  * Debit
-  * Credit
-  * Running balance
+  ### 📌 Example (Raw PDF Input)
 
-Example input:
+  ![Raw bank statement PDF](screenshots/before1.png)
 
-```
-data/raw/
-├── bank_statement_demo01.pdf
-├── bank_statement_demo02.pdf
-├── bank_statement_demo03.pdf
-└── bank_statement_demo04.pdf
-```
+  ![Raw bank statement PDF](screenshots/before2.png)
 
----
+  *Shows debit/credit columns, running balance, and summary rows mixed with transactions.*
 
-## Output
+  ------
 
-Each PDF is converted into a **clean transaction ledger** with:
+  ## 🟢 The Result (After Cleaning)
 
-* One row per transaction
-* Numeric amounts with correct sign
-* Consistent column schema
-* Source file traceability
+  Each bank statement is converted into a **clean transaction table** suitable for:
 
-Final output schema:
+  - financial analysis
+  - dashboards / BI tools
+  - database import
+  - accounting systems
 
-| Column        | Description                                                 |
-| ------------- | ----------------------------------------------------------- |
-| `date`        | Transaction date                                            |
-| `description` | Transaction description                                     |
-| `amount`      | Signed numeric amount (credit = positive, debit = negative) |
-| `balance`     | Account balance after transaction                           |
-| `source_file` | Original PDF file name                                      |
+  ### 📌 Example (Clean Output Table)
 
-Example output:
+  ![Cleaned transaction table](screenshots/clean1.png)
 
-```
-data/clean/
-├── bank_statement_demo01_clean.csv
-├── bank_statement_demo02_clean.csv
-├── bank_statement_demo03_clean.csv
-└── bank_statement_demo04_clean.csv
-```
+  ![Cleaned transaction table](screenshots/clean2.png)
 
----
+  ### ✅ What the pipeline guarantees
 
-## Cleaning Rules (Key Decisions)
+  - ✅ One row = one transaction
+  - ✅ Debit / Credit normalized into a single numeric `amount` field
+  - ✅ Expenses are negative, income is positive
+  - ✅ Standardized date format (`YYYY-MM-DD`)
+  - ✅ Clean running balance preserved
+  - ✅ Source file traceability
 
-### 1. Opening Balance Handling
+  ------
 
-Rows such as **“Opening Balance”** are intentionally excluded.
+  ## 📂 Input → Output Overview
 
-These rows represent **account state**, not transactional activity, and are therefore **not suitable for ledger-based analysis or aggregation**.
+  ### Input (Raw Files)
 
----
+  ```
+  data/raw/
+  ├── bank_statement_demo01.pdf
+  ├── bank_statement_demo02.pdf
+  ├── bank_statement_demo03.pdf
+  └── bank_statement_demo04.pdf
+  ```
 
-### 2. Debit / Credit Normalization
+  - Files may differ slightly in layout
+  - Raw files are **never modified**
+  - Treated as source-of-truth
 
-* Credit amounts → positive values
-* Debit amounts → negative values
-* Currency symbols and commas are removed
+  ------
 
-This ensures the `amount` column can be directly used for:
+  ### Output (Clean Files)
 
-* Summation
-* Cash flow analysis
-* Expense categorization
+  ```
+  data/clean/
+  ├── bank_statement_demo01_clean.csv
+  ├── bank_statement_demo02_clean.csv
+  ├── bank_statement_demo03_clean.csv
+  └── bank_statement_demo04_clean.csv
+  ```
 
----
+  Each output file follows the same schema:
 
-### 3. Balance Preservation
+  | Column        | Description                     |
+  | ------------- | ------------------------------- |
+  | `date`        | Transaction date (YYYY-MM-DD)   |
+  | `description` | Cleaned transaction description |
+  | `amount`      | Signed numeric amount           |
+  | `balance`     | Running account balance         |
+  | `source_file` | Original PDF file name          |
 
-The `balance` column is retained **for verification and reconciliation**, but is **not used to infer transaction amounts**.
+  ------
 
----
+  ## ⚙️ Cleaning Pipeline (How It Works)
 
-## Pipeline Overview
+  The pipeline is **rule-based, modular, and explainable**:
 
-1. Extract tables from PDF using layout-aware parsing
-2. Normalize column names
-3. Remove non-transaction rows
-4. Convert debit / credit into signed numeric amounts
-5. Enforce final schema and add source metadata
-6. Export clean CSV files
+  1. Extract tabular data from PDF
+  2. Remove non-transaction rows (headers, summaries)
+  3. Normalize dates
+  4. Merge Debit / Credit into a single amount
+  5. Apply sign convention (credit + / debit −)
+  6. Preserve running balance
+  7. Enforce final schema
+  8. Attach source file metadata
 
----
+  Each rule is implemented as a **separate step**, not a monolithic script.
 
-## How to Run
+  ------
 
-```bash
-python -m src.run_pipeline
-```
+  ## 🧠 Design Decisions
 
-All PDFs in `data/raw/` are processed automatically.
+  ### No Data Fabrication
 
----
+  - Opening balance rows are excluded from transactions
+  - Totals are not recalculated or inferred
 
-## Why This Demo Matters
+  ### Financial Safety First
 
-This project mirrors **real client requests** on platforms like Upwork:
+  - Debit and credit logic is explicit
+  - Balance values are preserved exactly as provided
 
-* Bank statements delivered as PDFs
-* Requirement for clean, structured transaction data
-* Clear, explainable transformation rules
-* Batch processing instead of one-off scripts
+  ### Traceability
 
-The pipeline is designed to be **extendable** to other banks and statement layouts.
+  - Original source file name is attached to every row
+  - Intermediate extraction results are stored for inspection
 
----
+  ### Batch-Oriented
 
-## Notes
+  - All PDFs in `data/raw/` are processed automatically
+  - No per-file manual handling
 
-* All data is **synthetic and for demonstration only**
-* No real financial accounts are involved
-* This demo focuses on **data extraction and normalization**, not financial advice or analysis
+  ------
+
+  ## 🏗 Project Structure
+
+  ```
+  bank-statement-cleanup-demo/
+  ├── data/
+  │   ├── raw/        # original PDF statements
+  │   ├── interim/    # extracted tables
+  │   └── clean/      # cleaned CSV outputs
+  ├── src/
+  │   ├── config.py
+  │   ├── extract_tables.py
+  │   ├── clean_rules.py
+  │   └── run_pipeline.py
+  ├── screenshots/    # before / after comparisons
+  └── README.md
+  ```
+
+  ------
+
+  ## ▶ How to Run
+
+  ```bash
+  python -m src.run_pipeline
+  ```
+
+  All PDF files in `data/raw/` are processed in batch, and cleaned results are written to `data/clean/`.
+
+  ------
+
+  ## 💼 Why This Demo Is Useful for Clients
+
+  This demo shows that I can:
+
+  - process **bank statements from PDFs**
+  - normalize debit / credit into clean numeric data
+  - preserve financial correctness
+  - build **reusable batch pipelines**
+  - explain every transformation clearly
+
+  This same approach applies to:
+
+  - personal bank statements
+  - business account statements
+  - credit card statements
+  - financial compliance preprocessing
+
+  ------
+
+  ## 📌 Notes
+
+  - This demo focuses on **data cleaning and normalization**, not financial advice.
+  - The pipeline can be extended to support additional bank formats with minimal changes.

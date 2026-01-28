@@ -27,10 +27,6 @@ data/interim/
 # Jupyter (if added later)
 .ipynb_checkpoints/
 
-# Screenshots (optional)
-screenshots/*.png
-screenshots/*.jpg
-
 # PDFs / raw data
 # ⚠️ raw PDFs are demo assets → keep them
 # Do NOT ignore data/raw/
